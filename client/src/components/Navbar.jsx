@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import React, { useState } from 'react'
 import { assets, menuLinks } from '../assets/assets.js'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
