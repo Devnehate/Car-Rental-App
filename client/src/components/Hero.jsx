@@ -8,7 +8,7 @@ const Hero = () => {
   return (
     <div className='h-screen flex flex-col items-center justify-center gap-14 bg-light text-center'>
 
-      <h1 className='text-4xl md:text-5xl font-semibold'>Luxury Cars On Rent</h1>
+      <h1 className='text-4xl md:text-5xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 text-transparent bg-clip-text'>Luxury Cars On Rent</h1>
 
       <form className='flex flex-col md:flex-row items-start md:items-center justify-between p-4 rounded-lg md:rounded-full w-full max-w-80 md:max-w-200 bg-white shadow-[0px_8px_24px_rgba(0,0,0,0.1)]'>
 
@@ -37,13 +37,13 @@ const Hero = () => {
           
         </div>
 
-          <button className='flex items-center justify-center gap-1 px-7 py-3 max-sm:mt-4 mr-3 bg-primary hover:bg-primary-dull text-white rounded-full cursor-pointer'>
+          <button className='flex items-center justify-center gap-1 px-7 py-3 max-sm:mt-4 mr-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full cursor-pointer'>
             <img src={assets.search_icon} alt="search" className='brightness-300' />
             Search</button>
 
       </form>
 
-      <img src={assets.main_car} alt="car" className='max-h-74' />
+      <img src={assets.main_car} alt="car" className='max-h-74 drop-shadow-[0_10px_10px_rgba(0,70,255,0.15)]' />
 
     </div>
   )
