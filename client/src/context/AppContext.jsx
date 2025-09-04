@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from 'axios';
@@ -5,7 +6,6 @@ import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom'
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
-
 
 export const AppContext = createContext();
 
@@ -22,27 +22,46 @@ export const AppProvider = ({ children }) => {
     const [returnDate, setReturnDate] = useState('');
 
     const [cars, setCars] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     const fetchUser = async () => {
+        setLoading(true);
         try {
             const { data } = await axios.get('/api/user/data');
             if (data.success) {
                 setUser(data.user);
                 setIsOwner(data.user.role === 'owner');
+                setLoading(false);
+                return data.user;
             } else {
-                navigate('/');
+                setUser(null);
+                setIsOwner(false);
+                setLoading(false);
+                return null;
             }
         } catch (error) {
-            toast.error(error.message);
+            toast.error(
+                error.response?.data?.message ||
+                error.message ||
+                'Network error'
+            );
+            setUser(null);
+            setIsOwner(false);
+            setLoading(false);
+            return null;
         }
-    }
+    };
 
     const fetchCars = async () => {
         try {
             const { data } = await axios.get('/api/user/cars');
             data.success ? setCars(data.cars) : toast.error(data.message);
         } catch (error) {
-            toast.error(error.message);
+            toast.error(
+                error.response?.data?.message ||
+                error.message ||
+                'Network error'
+            );
         }
     }
 
@@ -56,14 +75,19 @@ export const AppProvider = ({ children }) => {
     }
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        setToken(token);
-        fetchCars();
+        const localToken = localStorage.getItem('token');
+        if (localToken) {
+            setToken(localToken);
+            axios.defaults.headers.common['Authorization'] = localToken;
+            fetchUser();
+        } else {
+            setLoading(false);
+        }
     }, []);
 
     useEffect(() => {
         if (token) {
-            axios.defaults.headers.common['Authorization'] = `${token}`;
+            axios.defaults.headers.common['Authorization'] = token;
             fetchUser();
         }
     }, [token]);
@@ -91,9 +115,11 @@ export const AppProvider = ({ children }) => {
         setReturnDate
     }
 
-    return (<AppContext.Provider value={value}>
+    return (
+      <AppContext.Provider value={value}>
         {children}
-    </AppContext.Provider>)
+      </AppContext.Provider>
+    )
 }
 export const useAppContext = () => {
     return useContext(AppContext);

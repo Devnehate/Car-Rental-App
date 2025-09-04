@@ -8,28 +8,42 @@ import jwt from 'jsonwebtoken';
 
 export const changeRoleOwner = async (req, res) => {
     try {
-        const { _id } = req.user;
-        await User.findByIdAndUpdate(_id, { role: "owner" });
+        console.log("Change role request for user:", req.user._id);
         
-        // Get updated user to include in new token
-        const updatedUser = await User.findById(_id);
+        // Use findByIdAndUpdate to ensure atomic update
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { role: 'owner' },
+            { new: true, runValidators: true } // returns updated document
+        );
         
+        if (!updatedUser) {
+            console.log("User not found during role update");
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        console.log("User role updated to:", updatedUser.role);
+
         // Generate new token with updated role
-        const token = jwt.sign({ 
-            _id: updatedUser._id, 
-            role: updatedUser.role,
-            name: updatedUser.name,
-            email: updatedUser.email
+        const token = jwt.sign({
+            _id: updatedUser._id.toString(),
+            role: updatedUser.role // Explicitly include updated role
         }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        
+
         res.json({ 
             success: true, 
-            message: "Now you can list cars",
-            token: token 
+            message: "Role updated successfully", 
+            token,
+            user: {
+                _id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role
+            }
         });
     } catch (error) {
-        console.log(error.message);
-        res.json({ success: false, message: "Failed to update user role" });
+        console.error("Error updating role:", error);
+        res.status(500).json({ success: false, message: error.message || "Failed to update role" });
     }
 };
 
@@ -140,7 +154,7 @@ export const getDashboardData = async (req, res) => {
 
         const monthlyRevenue = bookings.slice().filter(booking => booking.status === "confirmed").reduce((acc, booking) => acc + booking.price, 0);
 
-        const dashBoardData = {
+        const dashboardData = {
             totalCars: cars.length,
             totalBookings: bookings.length,
             pendingBookings: pendingBookings.length,
@@ -149,7 +163,7 @@ export const getDashboardData = async (req, res) => {
             monthlyRevenue
         }
 
-        res.json({ success: true, dashBoardData });
+        res.json({ success: true, dashboardData });
 
     } catch (error) {
         console.log(error.message);

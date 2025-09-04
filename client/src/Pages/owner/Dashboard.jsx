@@ -3,11 +3,10 @@ import { assets } from '../../assets/assets';
 import Title from '../../components/owner/Title';
 import { useAppContext } from '../../context/AppContext'
 import toast from 'react-hot-toast';
-
+import { Navigate } from 'react-router-dom';
 
 const Dashboard = () => {
-
-  const { axios, isOwner, currency } = useAppContext();
+  const { axios, isOwner, currency, user, loading } = useAppContext();
 
   const [data, setData] = useState({
     totalCars: 0,
@@ -30,7 +29,7 @@ const Dashboard = () => {
     try {
       const { data } = await axios.get('/api/owner/dashboard');
       if (data.success) {
-        setData(data.dashboardData);
+        setData(data.dashboardData); // changed from dashBoardData to dashboardData
       } else {
         toast.error(data.message);
       }
@@ -41,11 +40,21 @@ const Dashboard = () => {
   }
 
   useEffect(() => {
-    if (isOwner) {
+    if (isOwner && user) { // ensure user is loaded
       fetchDashboardData();
     }
-  }, [isOwner]);
+  }, [isOwner, user]); // also depend on user
 
+  console.log('user:', user, 'isOwner:', isOwner, 'loading:', loading);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  // Only redirect if not loading and user/isOwner are definitely false
+  if (!loading && (!user || !isOwner)) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className='px-4 pt-10 md:px-10 flex-1'>

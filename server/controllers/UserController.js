@@ -3,9 +3,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import Car from '../models/Car.js';
 
-const generateToken = (userId) => {
-    const payload = userId;
-    return jwt.sign(payload, process.env.JWT_SECRET);
+const generateToken = async (userId) => {
+    const user = await User.findById(userId);
+    return jwt.sign({ 
+        _id: userId,
+        role: user ? user.role : 'user'
+    }, process.env.JWT_SECRET, { expiresIn: '7d' });
 }
 
 
@@ -27,7 +30,7 @@ export const registerUser = async (req, res) => {
 
         const user = await User.create({ name, email, password: hashedPassword });
 
-        const token = generateToken(user._id.toString());
+        const token = await generateToken(user._id.toString());
 
         res.json({ success: true, token });
     } catch (error) {
@@ -52,7 +55,7 @@ export const loginUser = async (req, res) => {
             return res.json({ success: false, message: 'Invalid credentials' });
         }
 
-        const token = generateToken(user._id.toString());
+        const token = await generateToken(user._id.toString());
 
         res.json({ success: true, token });
     } catch (error) {
@@ -63,8 +66,8 @@ export const loginUser = async (req, res) => {
 
 export const getUserData = async (req, res) => {
     try {
-        const { user } = req;
-        res.json({ success: true, user });
+        const userFromDb = await User.findById(req.user._id); // fetch fresh user from DB
+        res.json({ success: true, user: userFromDb });
     } catch (error) {
         console.log(error.message);
         res.json({ success: false, message: error.message });

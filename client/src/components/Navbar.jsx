@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState } from 'react'
 import { assets, menuLinks } from '../assets/assets.js'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -6,31 +7,53 @@ import toast from 'react-hot-toast';
 
 const Navbar = () => {
 
-    const { setShowLogin, user, logout, isOwner, axios, setIsOwner } = useAppContext();
+    const { setShowLogin, user, logout, isOwner, axios, setToken, fetchUser, setUser, setIsOwner } = useAppContext();
 
     const location = useLocation();
     const [open, setOpen] = useState(false);
     const navigate = useNavigate();
 
-    const changeRole = async () => {
-        try {
-            const { data } = await axios.post('/api/owner/change-role');
-            if(data.success) {
-                // Store the new token with updated role information
-                localStorage.setItem('token', data.token);
-                
-                // Update your axios headers with the new token
-                axios.defaults.headers.common['Authorization'] = `${data.token}`;
-                
-                setIsOwner(true);
+    // Update the changeRole function with better error handling
+const changeRole = async () => {
+    try {
+        console.log("Starting role change...");
+        
+        const { data } = await axios.post('/api/owner/change-role');
+        console.log("Role change response:", data);
+        
+        if (data.success) {
+            // Store token and update user state directly
+            localStorage.setItem('token', data.token);
+            setToken(data.token);
+            
+            // If the server included user data in response, use it
+            if (data.user) {
+                setUser(data.user);
+                setIsOwner(data.user.role === 'owner');
+                toast.success('Now you can list cars');
+                navigate('/owner');
+                return;
+            }
+            
+            // Otherwise fetch updated user data
+            const updatedUser = await fetchUser();
+            console.log("Updated user data:", updatedUser);
+            
+            if (updatedUser && updatedUser.role === 'owner') {
+                navigate('/owner');
                 toast.success('Now you can list cars');
             } else {
-                toast.error(data.message);
+                console.error("Role update verification failed:", updatedUser);
+                toast.error(`Role update verification failed. ${updatedUser ? `Current role: ${updatedUser.role}` : 'User data missing'}`);
             }
-        } catch (error) {
-            toast.error(error.message);
+        } else {
+            toast.error(data.message || "Unknown error occurred");
         }
+    } catch (error) {
+        console.error('Role change error:', error);
+        toast.error(error.response?.data?.message || error.message || "Failed to update role");
     }
+}
 
     return (
         <div className={`flex items-center justify-between md:px-16 lg:px-24 xl:px-32 py-4 text-gray-600 border-b border-borderColor relative transition-all ${location.pathname === "/" && "bg-light"}`}>

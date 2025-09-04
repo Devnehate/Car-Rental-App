@@ -1,6 +1,6 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
-import { addCar, changeRoleOwner, deleteCar, getDashboardData, getOwnerCar, toggleCarAvailability, updateUserImage } from '../controllers/OnwerController.js';
+import { addCar, changeRoleOwner, deleteCar, getDashboardData, getOwnerCar, toggleCarAvailability, updateUserImage } from '../controllers/OwnerController.js';
 import upload from '../middleware/multer.js';
 
 const ownerRouter = express.Router();
