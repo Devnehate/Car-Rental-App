@@ -15,12 +15,18 @@ const Navbar = () => {
     const changeRole = async () => {
         try {
             const { data } = await axios.post('/api/owner/change-role');
-           if(data.success) {
-               setIsOwner(true);
-               toast.success('Now you can list cars');
-           } else {
+            if(data.success) {
+                // Store the new token with updated role information
+                localStorage.setItem('token', data.token);
+                
+                // Update your axios headers with the new token
+                axios.defaults.headers.common['Authorization'] = `${data.token}`;
+                
+                setIsOwner(true);
+                toast.success('Now you can list cars');
+            } else {
                 toast.error(data.message);
-           }
+            }
         } catch (error) {
             toast.error(error.message);
         }

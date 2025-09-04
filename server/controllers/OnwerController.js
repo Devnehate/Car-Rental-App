@@ -3,15 +3,33 @@ import User from "../models/User.js";
 import Car from '../models/Car.js';
 import fs from 'fs';
 import Booking from "../models/Booking.js";
+import jwt from 'jsonwebtoken';
 
 
 export const changeRoleOwner = async (req, res) => {
     try {
         const { _id } = req.user;
-        await User.findByIdAndUpdate(_id, { role: "owner" })
-        res.json({ success: true, message: "Now you can list cars" })
+        await User.findByIdAndUpdate(_id, { role: "owner" });
+        
+        // Get updated user to include in new token
+        const updatedUser = await User.findById(_id);
+        
+        // Generate new token with updated role
+        const token = jwt.sign({ 
+            _id: updatedUser._id, 
+            role: updatedUser.role,
+            name: updatedUser.name,
+            email: updatedUser.email
+        }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        
+        res.json({ 
+            success: true, 
+            message: "Now you can list cars",
+            token: token 
+        });
     } catch (error) {
-        res.json({ success: false, message: "Failed to update user role" })
+        console.log(error.message);
+        res.json({ success: false, message: "Failed to update user role" });
     }
 };
 
@@ -106,9 +124,11 @@ export const deleteCar = async (req, res) => {
 
 export const getDashboardData = async (req, res) => {
     try {
-        const { _id, role } = req.user;
-
-        if (role !== "owner") {
+        const { _id } = req.user;
+        
+        const currentUser = await User.findById(_id);
+        
+        if (!currentUser || currentUser.role !== "owner") {
             return res.json({ success: false, message: "Unauthorized" });
         }
 
