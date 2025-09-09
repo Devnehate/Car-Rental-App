@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import Title from '../../components/owner/Title';
-import { assets } from '../../assets/assets';
+import { assets, cityList } from '../../assets/assets'; // Import cityList
 import { useAppContext } from '../../context/AppContext'
 import toast from 'react-hot-toast';
 
@@ -121,7 +121,7 @@ const AddCar = () => {
 
           <div className='flex flex-col w-full'>
             <label>Fuel Type</label>
-            <select onChange={e => setCar({ ...car, fuelType: e.target.value })} value={car.fuel_type} className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none'>
+            <select onChange={e => setCar({ ...car, fuel_type: e.target.value })} value={car.fuel_type} className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none'>
               <option value="">Select a fuel type</option>
               <option value="gas">Gas</option>
               <option value="petrol">Petrol</option>
@@ -141,10 +141,9 @@ const AddCar = () => {
           <label>Location</label>
           <select onChange={e => setCar({ ...car, location: e.target.value })} value={car.location} className='px-3 py-2 mt-1 border border-borderColor rounded-md outline-none'>
             <option value="">Select a location</option>
-            <option value="city">New York</option>
-            <option value="suburb">Los Angeles</option>
-            <option value="rural">Chicago</option>
-            <option value="hybrid">San Francisco</option>
+            {cityList.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
           </select>
         </div>
 

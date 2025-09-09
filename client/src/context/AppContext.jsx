@@ -92,6 +92,10 @@ export const AppProvider = ({ children }) => {
         }
     }, [token]);
 
+    useEffect(() => {
+        fetchCars();
+    }, []);
+
     const value = {
         navigate,
         currency,
@@ -112,7 +116,8 @@ export const AppProvider = ({ children }) => {
         pickupDate,
         setPickupDate,
         returnDate,
-        setReturnDate
+        setReturnDate,
+        isLoading: loading  // Add this line to make loading available as isLoading
     }
 
     return (

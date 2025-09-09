@@ -119,15 +119,20 @@ export const deleteCar = async (req, res) => {
     try {
         const { _id } = req.user;
         const { carId } = req.body;
+        
+        // First find the car to verify ownership
         const car = await Car.findById(carId);
+        
+        if (!car) {
+            return res.json({ success: false, message: "Car not found" });
+        }
 
         if (car.owner.toString() !== _id.toString()) {
             return res.json({ success: false, message: "Unauthorized" });
         }
 
-        car.owner = null;
-        car.isAvailable = false;
-        await car.save();
+        // Use findByIdAndDelete to properly remove the car
+        await Car.findByIdAndDelete(carId);
 
         res.json({ success: true, message: "Car deleted successfully" });
     } catch (error) {
