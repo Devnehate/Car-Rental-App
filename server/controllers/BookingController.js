@@ -47,7 +47,9 @@ export const createBookings = async (req, res) => {
 
         const picked = new Date(pickupDate);
         const returned = new Date(returnDate);
-        const noOfDays = Math.ceil((returned - picked) / (1000 * 60 * 60 * 24));
+        // Calculate difference in days, always at least 1
+        let noOfDays = Math.ceil((returned - picked) / (1000 * 60 * 60 * 24));
+        if (noOfDays < 1) noOfDays = 1;
         const price = carData.pricePerDay * noOfDays;
 
         await Booking.create({
@@ -80,11 +82,14 @@ export const getUserBookings = async (req, res) => {
 
 export const getOwnerBookings = async (req, res) => {
     try {
-        if (req.owner, role) {
+        if (!req.user || req.user.role !== "owner") {
             return res.json({ success: false, message: "Unauthorized" });
         }
 
-        const bookings = await Booking.find({ owner: req.user._id }).populate('car user').select('-user.password').sort({ createdAt: -1 });
+        const bookings = await Booking.find({ owner: req.user._id })
+            .populate('car user')
+            .select('-user.password')
+            .sort({ createdAt: -1 });
 
         res.json({ success: true, bookings });
 
